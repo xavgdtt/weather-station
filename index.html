@@ -404,6 +404,7 @@ body.teletext .grid {
   grid-template-columns: 1fr 1fr;
   gap: 4px 36px;
   padding-top: 8px;
+  margin-top: 0;
   font-family: 'VT323', monospace;
 }
 body.teletext .card {
@@ -539,8 +540,14 @@ body.teletext .card .trend.down {
   body.teletext .center { padding: 10px 0 14px; margin: 12px 0 10px; }
   body.teletext .temp { font-size: clamp(60px, 22vw, 110px); }
   body.teletext .feels { font-size: 18px; }
-  body.teletext .grid { grid-template-columns: 1fr; gap: 2px; }
-  body.teletext .card { grid-template-columns: 130px 1fr; column-gap: 10px; }
+  body.teletext .grid {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    max-width: 300px;
+    margin: 0 auto;
+    justify-items: stretch;
+  }
+  body.teletext .card { grid-template-columns: 120px 1fr; column-gap: 10px; }
   body.teletext .card .label { font-size: 18px; }
   body.teletext .card .val { font-size: 22px; }
   body.teletext .card .unit { font-size: 16px; }
