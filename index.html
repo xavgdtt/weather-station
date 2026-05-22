@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0118">
+<title>Xavier's Weather Station</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #050010 0%, #1a0033 28%, #2d0a4e 52%, #6e1257 70%, #ff2a6d 80%, #ff006e 83%, #2a0540 85%, #050010 100%);
+  font-family: 'Orbitron', 'Courier New', monospace;
+  color: #fff;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 36px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+header.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.station-name { color: #00f0ff; text-shadow: 0 0 10px #00f0ff; }
+.live { color: #ff19a8; text-shadow: 0 0 10px #ff19a8; animation: pulse 1.6s ease-in-out infinite; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.center {
+  text-align: center;
+  margin: 50px 0 30px;
+}
+
+.temp {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: clamp(96px, 17vw, 180px);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  text-shadow: 0 0 12px #ff00ff, 0 0 28px #ff00ff, 0 0 48px #ff007a, 0 0 80px #ff007a;
+}
+
+.feels {
+  font-size: 14px;
+  color: #ffea00;
+  letter-spacing: 0.3em;
+  margin-top: 18px;
+  text-shadow: 0 0 6px #ffea00;
+  font-weight: 500;
+}
+
+.grid {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding-top: 24px;
+}
+
+.card {
+  border: 1px solid;
+  padding: 14px 16px;
+  background: rgba(5, 0, 20, 0.55);
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.card .label {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  font-weight: 500;
+}
+
+.card .val {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 32px;
+  font-weight: 400;
+  margin-top: 4px;
+  color: #fff;
+}
+
+.card .unit {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  margin-left: 4px;
+  opacity: 0.85;
+}
+
+.c-cyan   { border-color: #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.4); }
+.c-cyan   .label { color: #00f0ff; text-shadow: 0 0 5px #00f0ff; }
+.c-pink   { border-color: #ff19a8; box-shadow: 0 0 10px rgba(255, 25, 168, 0.4); }
+.c-pink   .label { color: #ff19a8; text-shadow: 0 0 5px #ff19a8; }
+.c-yellow { border-color: #ffea00; box-shadow: 0 0 10px rgba(255, 234, 0, 0.35); }
+.c-yellow .label { color: #ffea00; text-shadow: 0 0 5px #ffea00; }
+.c-purple { border-color: #b388ff; box-shadow: 0 0 10px rgba(179, 136, 255, 0.4); }
+.c-purple .label { color: #b388ff; text-shadow: 0 0 5px #b388ff; }
+
+.trend {
+  display: inline-block;
+  margin-left: 0.2em;
+  font-size: 0.5em;
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  vertical-align: 0.2em;
+  opacity: 0;
+  transition: opacity 0.3s, color 0.3s;
+}
+.temp  .trend { font-size: 0.28em; vertical-align: 0.4em; margin-left: 0.18em; }
+.feels .trend { font-size: 1em;    vertical-align: 0;     margin-left: 0.5em; }
+.trend.up   { color: #ff19a8; text-shadow: 0 0 6px #ff19a8; opacity: 0.85; }
+.trend.down { color: #00f0ff; text-shadow: 0 0 6px #00f0ff; opacity: 0.85; }
+
+/* If the API doesn't return a value, drop the whole card from the grid. */
+.card.no-data { display: none; }
+
+.wind-card .wind-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.wind-card .val { margin-top: 0; }
+.compass-svg {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 3px rgba(255, 25, 168, 0.35));
+}
+#wind-needle {
+  transform-origin: 50px 50px;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+  filter: drop-shadow(0 0 2px #ff19a8) drop-shadow(0 0 5px #ff19a8);
+}
+#wind-needle.no-dir { opacity: 0.2; }
+.wind-stats { flex: 1; min-width: 0; }
+.wind-dir {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: #ff19a8;
+  text-shadow: 0 0 4px #ff19a8;
+  opacity: 0.75;
+  margin-top: 4px;
+}
+
+footer.foot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: #b388ff;
+  text-shadow: 0 0 4px #b388ff;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.notice {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 10px 18px;
+  background: rgba(255, 25, 80, 0.15);
+  border: 1px solid #ff1950;
+  color: #ff7a9e;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  border-radius: 4px;
+  display: none;
+  text-shadow: 0 0 4px #ff1950;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.notice.show { display: block; }
+
+@media (max-width: 600px) {
+  .content { padding: 18px 14px; }
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .card { padding: 10px 12px; }
+  .card .val { font-size: 22px; }
+  .compass-svg { width: 56px; height: 56px; }
+  .wind-card .wind-body { gap: 8px; margin-top: 4px; }
+  .wind-dir { font-size: 9px; letter-spacing: 0.12em; }
+  header.bar { font-size: 10px; letter-spacing: 0.15em; }
+  .feels { font-size: 11px; letter-spacing: 0.22em; }
+  footer.foot { font-size: 10px; }
+  .center { margin: 26px 0 18px; }
+  .temp { font-size: clamp(72px, 22vw, 120px); }
+}
+</style>
+</head>
+<body>
+
+<svg class="scene" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sungrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff200"/>
+      <stop offset="0.45" stop-color="#ff7a00"/>
+      <stop offset="1" stop-color="#ff006e"/>
+    </linearGradient>
+    <clipPath id="sunclip">
+      <rect x="400" y="280" width="400" height="170"/>
+      <rect x="400" y="455" width="400" height="6"/>
+      <rect x="400" y="466" width="400" height="8"/>
+      <rect x="400" y="480" width="400" height="10"/>
+      <rect x="400" y="496" width="400" height="14"/>
+      <rect x="400" y="516" width="400" height="18"/>
+      <rect x="400" y="540" width="400" height="24"/>
+    </clipPath>
+  </defs>
+  <g fill="#fff">
+    <circle cx="80"   cy="60"  r="1.5" opacity="0.9"/>
+    <circle cx="260"  cy="90"  r="1"   opacity="0.7"/>
+    <circle cx="450"  cy="140" r="1.2" opacity="0.8"/>
+    <circle cx="700"  cy="80"  r="1"   opacity="0.6"/>
+    <circle cx="900"  cy="130" r="1.4" opacity="0.85"/>
+    <circle cx="1100" cy="200" r="1"   opacity="0.7"/>
+    <circle cx="180"  cy="220" r="0.8" opacity="0.6"/>
+    <circle cx="1050" cy="60"  r="1.3" opacity="0.9"/>
+    <circle cx="340"  cy="180" r="0.9" opacity="0.7"/>
+    <circle cx="820"  cy="240" r="1.1" opacity="0.75"/>
+  </g>
+  <circle cx="600" cy="450" r="190" fill="url(#sungrad)" clip-path="url(#sunclip)"/>
+  <line x1="0" y1="600" x2="1200" y2="600" stroke="#ff58c4" stroke-width="3"/>
+  <g stroke="#ff19a8" stroke-width="1" fill="none" opacity="0.85">
+    <line x1="600" y1="600" x2="-300" y2="800"/>
+    <line x1="600" y1="600" x2="-150" y2="800"/>
+    <line x1="600" y1="600" x2="0"    y2="800"/>
+    <line x1="600" y1="600" x2="150"  y2="800"/>
+    <line x1="600" y1="600" x2="300"  y2="800"/>
+    <line x1="600" y1="600" x2="450"  y2="800"/>
+    <line x1="600" y1="600" x2="750"  y2="800"/>
+    <line x1="600" y1="600" x2="900"  y2="800"/>
+    <line x1="600" y1="600" x2="1050" y2="800"/>
+    <line x1="600" y1="600" x2="1200" y2="800"/>
+    <line x1="600" y1="600" x2="1350" y2="800"/>
+    <line x1="600" y1="600" x2="1500" y2="800"/>
+    <line x1="0" y1="624" x2="1200" y2="624"/>
+    <line x1="0" y1="654" x2="1200" y2="654"/>
+    <line x1="0" y1="694" x2="1200" y2="694"/>
+    <line x1="0" y1="746" x2="1200" y2="746"/>
+  </g>
+</svg>
+
+<div class="content">
+  <header class="bar">
+    <span class="station-name">▶ STATION IZURIC65 · ZÜRICH</span>
+    <span class="live">● LIVE</span>
+  </header>
+
+  <div class="center">
+    <div class="temp"><span id="temp">--.-</span>°<span class="trend" id="temp-tr"></span></div>
+    <div class="feels">FEELS LIKE <span id="feels">--.-</span>°<span class="trend" id="feels-tr"></span></div>
+  </div>
+
+  <div class="grid">
+    <div class="card c-cyan">
+      <div class="label">HUMIDITY</div>
+      <div class="val"><span id="hum">--</span>%<span class="trend" id="hum-tr"></span></div>
+    </div>
+    <div class="card c-pink wind-card">
+      <div class="label">WIND</div>
+      <div class="wind-body">
+        <svg class="compass-svg" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#ff19a8" stroke-width="1"   opacity="0.55"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#ff19a8" stroke-width="0.5" opacity="0.22"/>
+          <g stroke="#ff19a8" stroke-width="1" opacity="0.5">
+            <line x1="50" y1="4"  x2="50" y2="10"/>
+            <line x1="50" y1="90" x2="50" y2="96"/>
+            <line x1="4"  y1="50" x2="10" y2="50"/>
+            <line x1="90" y1="50" x2="96" y2="50"/>
+          </g>
+          <g font-family="Orbitron, monospace" font-size="11" font-weight="700" fill="#ff19a8" text-anchor="middle">
+            <text x="50" y="22">N</text>
+            <text x="50" y="86">S</text>
+            <text x="83" y="54">E</text>
+            <text x="17" y="54">W</text>
+          </g>
+          <g id="wind-needle">
+            <line x1="50" y1="50" x2="50" y2="22" stroke="#ff19a8" stroke-width="2.5" stroke-linecap="round"/>
+            <polygon points="50,12 44,26 56,26" fill="#ff19a8"/>
+            <circle cx="50" cy="50" r="3" fill="#ff19a8"/>
+          </g>
+        </svg>
+        <div class="wind-stats">
+          <div class="val"><span id="wind">--</span><span class="unit">km/h</span><span class="trend" id="wind-tr"></span></div>
+          <div class="wind-dir"><span id="winddir">---</span> · <span id="winddeg">---°</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card c-yellow">
+      <div class="label">PRESSURE</div>
+      <div class="val"><span id="press">----</span><span class="unit">hPa</span><span class="trend" id="press-tr"></span></div>
+    </div>
+    <div class="card c-purple">
+      <div class="label">UV INDEX</div>
+      <div class="val"><span id="uv">--</span><span class="trend" id="uv-tr"></span></div>
+    </div>
+    <div class="card c-cyan">
+      <div class="label">DEW POINT</div>
+      <div class="val"><span id="dew">--.-</span>°<span class="trend" id="dew-tr"></span></div>
+    </div>
+    <div class="card c-pink">
+      <div class="label">GUST</div>
+      <div class="val"><span id="gust">--</span><span class="unit">km/h</span><span class="trend" id="gust-tr"></span></div>
+    </div>
+    <div class="card c-yellow">
+      <div class="label">RAIN TODAY</div>
+      <div class="val"><span id="rain">--.-</span><span class="unit">mm</span><span class="trend" id="rain-tr"></span></div>
+    </div>
+    <div class="card c-purple">
+      <div class="label">SOLAR</div>
+      <div class="val"><span id="solar">---</span><span class="unit">W/m²</span><span class="trend" id="solar-tr"></span></div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>UPDATED <span id="updated">--:--:--</span></span>
+  </footer>
+</div>
+
+<div class="notice" id="notice"></div>
+
+<script>
+// ╔══════════════════════════════════════════════════╗
+// ║  CONFIG                                          ║
+// ╚══════════════════════════════════════════════════╝
+const API_KEY    = '2189f14b859f4d7489f14b859ffd7437';
+const STATION_ID = 'IZURIC65';
+// 90s × 960 polls = full day, leaving ~480 fetches of headroom under the
+// 1440/day budget for reloads, manual refreshes, or a second open tab.
+const POLL_MS    = 90000;
+// Hard ceiling shared across tabs via localStorage. Stops fetching when the
+// day's count hits this; resets at the next UTC midnight rollover.
+const DAILY_CAP  = 1300;
+// ────────────────────────────────────────────────────
+
+const $ = id => document.getElementById(id);
+const DIRS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+const compass = d => DIRS[Math.round(d / 22.5) % 16];
+const pad = (n, l = 2) => String(n).padStart(l, '0');
+
+function notify(msg) {
+  const el = $('notice');
+  if (!msg) { el.classList.remove('show'); return; }
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function hasVal(v) { return v != null && isFinite(v); }
+
+function fmt(val, decimals, dash) {
+  if (!hasVal(val)) return dash;
+  return decimals > 0 ? Number(val).toFixed(decimals) : String(Math.round(val));
+}
+
+// Set a metric value and hide its enclosing .card if the API returned nothing.
+function setVal(id, val, decimals, dash) {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = fmt(val, decimals, dash);
+  const card = el.closest('.card');
+  if (card) card.classList.toggle('no-data', !hasVal(val));
+}
+
+// Per-metric noise floor: smaller deltas are treated as flat so the arrow
+// doesn't flicker on sensor jitter. Drifts slower than this accumulate
+// because prev[key] is only rewritten when an arrow actually flips.
+const prev = {};
+const TREND_THRESH = {
+  temp: 0.1, feels: 0.1, hum: 1, wind: 1, gust: 1,
+  press: 0.5, dew: 0.1, rain: 0.1, solar: 5, uv: 0.1
+};
+
+const QUOTA_KEY = 'wu_quota_v1';
+
+function quotaToday() {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(QUOTA_KEY) || 'null'); } catch (_) {}
+  return (raw && raw.date === today) ? raw : { date: today, count: 0 };
+}
+
+function bumpQuota() {
+  const q = quotaToday();
+  q.count += 1;
+  try { localStorage.setItem(QUOTA_KEY, JSON.stringify(q)); } catch (_) {}
+  return q.count;
+}
+
+function setTrend(key, current) {
+  if (current == null || !isFinite(current)) return;
+  const el = $(key + '-tr');
+  if (!el) return;
+  const last = prev[key];
+  if (last == null) { prev[key] = current; return; }
+  const thresh = TREND_THRESH[key] ?? 0.1;
+  const delta = current - last;
+  if (delta > thresh) {
+    el.textContent = '▲';
+    el.classList.remove('down');
+    el.classList.add('up');
+    prev[key] = current;
+  } else if (delta < -thresh) {
+    el.textContent = '▼';
+    el.classList.remove('up');
+    el.classList.add('down');
+    prev[key] = current;
+  }
+}
+
+async function update() {
+  if (API_KEY === 'YOUR_API_KEY_HERE') {
+    notify('Set your API_KEY in the HTML file');
+    return;
+  }
+  if (quotaToday().count >= DAILY_CAP) {
+    notify('Daily fetch cap reached · resumes 00:00 UTC');
+    return;
+  }
+  try {
+    const url = 'https://api.weather.com/v2/pws/observations/current'
+              + '?stationId=' + STATION_ID
+              + '&format=json&units=m&numericPrecision=decimal'
+              + '&apiKey=' + API_KEY;
+    bumpQuota();
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const o = j.observations && j.observations[0];
+    if (!o) throw new Error('no data');
+    const m = o.metric || {};
+
+    const temp  = m.temp;
+    const feels = m.heatIndex ?? m.windChill;
+    const hum   = o.humidity;
+    const wind  = m.windSpeed;
+    const gust  = m.windGust;
+    const press = m.pressure;
+    const dew   = m.dewpt;
+    const rain  = m.precipTotal;
+    const solar = o.solarRadiation;
+    const uv    = o.uv;
+    const wdir  = o.winddir;
+
+    $('temp').textContent  = fmt(temp,  1, '--.-');
+    $('feels').textContent = fmt(feels, 1, '--.-');
+    setVal('hum',   hum,   0, '--');
+    setVal('wind',  wind,  0, '--');
+    setVal('gust',  gust,  0, '--');
+    setVal('press', press, 0, '----');
+    setVal('dew',   dew,   1, '--.-');
+    setVal('rain',  rain,  1, '--.-');
+    setVal('solar', solar, 0, '---');
+    setVal('uv',    uv,    1, '--');
+
+    // Compass needle: rotate to wind direction, or dim out if missing.
+    const needle = $('wind-needle');
+    if (hasVal(wdir)) {
+      needle.style.transform = 'rotate(' + wdir + 'deg)';
+      needle.classList.remove('no-dir');
+      $('winddir').textContent = compass(wdir);
+      $('winddeg').textContent = pad(Math.round(wdir), 3) + '°';
+    } else {
+      needle.classList.add('no-dir');
+      $('winddir').textContent = '---';
+      $('winddeg').textContent = '---°';
+    }
+
+    setTrend('temp',  temp);
+    setTrend('feels', feels);
+    setTrend('hum',   hum);
+    setTrend('wind',  wind);
+    setTrend('gust',  gust);
+    setTrend('press', press);
+    setTrend('dew',   dew);
+    setTrend('rain',  rain);
+    setTrend('solar', solar);
+    setTrend('uv',    uv);
+
+    const t = o.obsTimeLocal ? new Date(o.obsTimeLocal.replace(' ', 'T')) : new Date();
+    $('updated').textContent = pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
+    notify(null);
+  } catch (e) {
+    notify('Fetch error · ' + e.message);
+    console.error(e);
+  }
+}
+
+update();
+setInterval(update, POLL_MS);
+</script>
+</body>
+</html>
