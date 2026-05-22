@@ -267,14 +267,64 @@ body.teletext {
   text-rendering: geometricPrecision;
   font-feature-settings: "liga" 0;
 }
+/* CRT scanlines + RGB sub-pixel phosphor mask, slowly drifting. */
 body.teletext::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255, 255, 255, 0.04) 2px 3px);
   z-index: 99;
+  background:
+    repeating-linear-gradient(to bottom,
+      rgba(0, 0, 0, 0)   0,
+      rgba(0, 0, 0, 0)   2px,
+      rgba(0, 0, 0, 0.4) 2px,
+      rgba(0, 0, 0, 0.4) 3px),
+    repeating-linear-gradient(to right,
+      rgba(255, 50, 50, 0.07) 0 1px,
+      rgba(50, 255, 80, 0.07) 1px 2px,
+      rgba(80, 130, 255, 0.07) 2px 3px);
+  background-size: 100% 3px, 3px 100%;
+  animation: crt-scanline-roll 18s linear infinite;
+  mix-blend-mode: normal;
 }
+
+/* Curved screen surface: bezel vignette + corner darkening. */
+body.teletext::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background:
+    radial-gradient(ellipse 115% 100% at center,
+      transparent 50%,
+      rgba(0, 0, 0, 0.35) 78%,
+      rgba(0, 0, 0, 0.92) 100%);
+  box-shadow: inset 0 0 140px 25px rgba(0, 0, 0, 0.85);
+}
+
+@keyframes crt-scanline-roll {
+  0%   { background-position: 0 0,      0 0; }
+  100% { background-position: 0 100vh,  0 0; }
+}
+@keyframes crt-flicker {
+  0%, 100% { opacity: 1; }
+  47%      { opacity: 0.97; }
+  48%      { opacity: 0.93; }
+  49%      { opacity: 0.98; }
+  50%      { opacity: 1; }
+}
+@keyframes crt-jitter {
+  0%, 88%, 100% { transform: translate3d(0, 0, 0); }
+  90%           { transform: translate3d(0.6px, 0, 0); }
+  91%           { transform: translate3d(-0.6px, 0.4px, 0); }
+  93%           { transform: translate3d(0, -0.4px, 0); }
+}
+
+body.teletext { animation: crt-flicker 6s ease-in-out infinite; }
+body.teletext .content { animation: crt-jitter 7s infinite; }
+
 body.teletext .scene { display: none; }
 
 body.teletext .content { max-width: 960px; padding: 22px 22px; }
@@ -370,26 +420,28 @@ body.teletext .card {
   column-gap: 14px;
 }
 body.teletext .card .label {
-  color: #00f0ff;
-  text-shadow: none;
+  color: var(--tt, #00f0ff);
+  text-shadow: 0 0 3px var(--tt, #00f0ff);
   font-family: 'VT323', monospace;
   font-size: 26px;
   letter-spacing: 0.04em;
   font-weight: 400;
   text-transform: uppercase;
+  opacity: 0.9;
 }
 body.teletext .card .val {
   font-family: 'VT323', monospace;
   font-size: 30px;
   margin-top: 0;
-  color: #ffea00;
+  color: var(--tt, #ffea00);
+  text-shadow: 0 0 4px var(--tt, #ffea00);
 }
 body.teletext .card .unit {
   font-size: 22px;
   letter-spacing: 0;
   margin-left: 6px;
-  color: #ffea00;
-  opacity: 0.85;
+  color: var(--tt, #ffea00);
+  opacity: 0.7;
 }
 
 body.teletext .wind-card { align-items: center; }
@@ -400,15 +452,15 @@ body.teletext .compass-svg {
   height: 60px;
   filter: none;
 }
-body.teletext .compass-svg > circle { stroke: #ffea00; }
-body.teletext .compass-svg > g[stroke] line { stroke: #ffea00; }
-body.teletext .compass-svg text { fill: #ffea00; }
-body.teletext #wind-needle line { stroke: #ff19a8; filter: none; }
+body.teletext .compass-svg > circle { stroke: var(--tt, #ffea00); }
+body.teletext .compass-svg > g[stroke] line { stroke: var(--tt, #ffea00); }
+body.teletext .compass-svg text { fill: var(--tt, #ffea00); }
+body.teletext #wind-needle line { stroke: #ff19a8; filter: drop-shadow(0 0 2px #ff19a8); }
 body.teletext #wind-needle polygon { fill: #ff19a8; }
-body.teletext #wind-needle { filter: drop-shadow(0 0 0 transparent); }
+body.teletext #wind-needle { filter: none; }
 body.teletext .wind-dir {
-  color: #fff;
-  text-shadow: none;
+  color: var(--tt, #fff);
+  text-shadow: 0 0 3px var(--tt, #fff);
   font-family: 'VT323', monospace;
   font-size: 20px;
   letter-spacing: 0.06em;
@@ -446,6 +498,38 @@ body.teletext .notice {
   text-shadow: none;
   letter-spacing: 0.06em;
   border-radius: 0;
+}
+
+/* Per-card teletext color palette — full 7-color teletext set, one per row. */
+body.teletext .grid > .card:nth-child(1) { --tt: #00ff33; } /* WIND       — green   */
+body.teletext .grid > .card:nth-child(2) { --tt: #ff4646; } /* GUST       — red     */
+body.teletext .grid > .card:nth-child(3) { --tt: #00f0ff; } /* RAIN RATE  — cyan    */
+body.teletext .grid > .card:nth-child(4) { --tt: #5e8eff; } /* RAIN TODAY — blue    */
+body.teletext .grid > .card:nth-child(5) { --tt: #ffea00; } /* HUMIDITY   — yellow  */
+body.teletext .grid > .card:nth-child(6) { --tt: #ff19a8; } /* DEW POINT  — magenta */
+body.teletext .grid > .card:nth-child(7) { --tt: #ffffff; } /* PRESSURE   — white   */
+
+/* Hero temperature — RGB phosphor bleed (chromatic aberration) + bright glow. */
+body.teletext .temp {
+  text-shadow:
+    -1.5px 0 0 rgba(255, 40, 90, 0.55),
+     1.5px 0 0 rgba(70, 170, 255, 0.55),
+     0 0 8px #ffea00,
+     0 0 14px rgba(255, 234, 0, 0.45);
+}
+body.teletext .feels { text-shadow: 0 0 4px rgba(255, 255, 255, 0.55); }
+body.teletext .feels #feels { text-shadow: 0 0 5px #ffea00; }
+
+/* Phosphor glow on header/footer. */
+body.teletext .station-name { text-shadow: 0 0 4px #ffea00; }
+body.teletext .live         { text-shadow: 0 0 5px #00ff33; }
+body.teletext footer.foot   { text-shadow: 0 0 3px #fff; }
+
+/* Trends pick up the card's color so the arrow doesn't fight the row. */
+body.teletext .card .trend.up,
+body.teletext .card .trend.down {
+  color: var(--tt, #fff);
+  text-shadow: 0 0 3px var(--tt, #fff);
 }
 
 @media (max-width: 600px) {
