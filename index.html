@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0118">
-<title>Xavier's Weather Station</title>
+<title>IZURIC65 - WEATHER STATION</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -53,6 +53,34 @@ header.bar {
 .station-name { color: #00f0ff; text-shadow: 0 0 10px #00f0ff; }
 .live { color: #ff19a8; text-shadow: 0 0 10px #ff19a8; animation: pulse 1.6s ease-in-out infinite; }
 
+.header-right { display: flex; align-items: center; gap: 14px; }
+.theme-toggle {
+  display: inline-flex;
+  border: 1px solid #00f0ff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.35);
+}
+.theme-toggle button {
+  background: transparent;
+  border: 0;
+  color: #00f0ff;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  padding: 4px 9px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 500;
+  text-shadow: 0 0 4px #00f0ff;
+}
+.theme-toggle button + button { border-left: 1px solid rgba(0, 240, 255, 0.55); }
+.theme-toggle button.active {
+  background: rgba(0, 240, 255, 0.22);
+  color: #fff;
+  text-shadow: 0 0 6px #00f0ff, 0 0 12px #00f0ff;
+}
+
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 .center {
@@ -71,10 +99,11 @@ header.bar {
 
 .feels {
   font-size: 14px;
-  color: #ffea00;
+  color: #fff;
   letter-spacing: 0.3em;
   margin-top: 18px;
-  text-shadow: 0 0 6px #ffea00;
+  /* Yellow halo + dark outer halo so it reads on any background, including the sun. */
+  text-shadow: 0 0 6px #ffea00, 0 0 12px rgba(0, 0, 0, 0.85);
   font-weight: 500;
 }
 
@@ -213,11 +242,209 @@ footer.foot {
   .compass-svg { width: 56px; height: 56px; }
   .wind-card .wind-body { gap: 8px; margin-top: 4px; }
   .wind-dir { font-size: 9px; letter-spacing: 0.12em; }
-  header.bar { font-size: 10px; letter-spacing: 0.15em; }
+  header.bar { font-size: 10px; letter-spacing: 0.15em; flex-wrap: wrap; gap: 8px; }
+  .header-right { gap: 8px; }
+  .theme-toggle button { font-size: 9px; padding: 3px 6px; letter-spacing: 0.12em; }
   .feels { font-size: 11px; letter-spacing: 0.22em; }
   footer.foot { font-size: 10px; }
   .center { margin: 26px 0 18px; }
   .temp { font-size: clamp(72px, 22vw, 120px); }
+}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  TELETEXT THEME — overrides applied via body.teletext  ║
+   ╚══════════════════════════════════════════════════╝ */
+body.teletext {
+  background: #000;
+  font-family: 'VT323', 'Courier New', monospace;
+  color: #fff;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  font-smooth: never;
+  text-rendering: geometricPrecision;
+  font-feature-settings: "liga" 0;
+}
+body.teletext::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255, 255, 255, 0.04) 2px 3px);
+  z-index: 99;
+}
+body.teletext .scene { display: none; }
+
+body.teletext .content { max-width: 960px; padding: 22px 22px; }
+
+body.teletext header.bar {
+  font-family: 'VT323', monospace;
+  font-size: 26px;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  font-weight: 400;
+}
+body.teletext .station-name { color: #ffea00; text-shadow: none; }
+body.teletext .live { color: #00ff33; text-shadow: none; animation: none; }
+body.teletext .theme-toggle {
+  border: 1px solid #ffea00;
+  border-radius: 0;
+  box-shadow: none;
+}
+body.teletext .theme-toggle button {
+  font-family: 'VT323', monospace;
+  color: #ffea00;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  padding: 2px 10px;
+  text-shadow: none;
+  font-weight: 400;
+}
+body.teletext .theme-toggle button + button { border-left-color: #ffea00; }
+body.teletext .theme-toggle button.active {
+  background: #ffea00;
+  color: #000;
+  text-shadow: none;
+}
+
+body.teletext .center {
+  border-top: 6px dashed #00f0ff;
+  border-bottom: 6px dashed #00f0ff;
+  margin: 18px 0 16px;
+  padding: 18px 0 22px;
+}
+body.teletext .temp {
+  font-family: 'VT323', monospace;
+  font-size: clamp(96px, 17vw, 170px);
+  letter-spacing: 0;
+  color: #ffea00;
+  text-shadow: none;
+  line-height: 1;
+}
+body.teletext .feels {
+  font-family: 'VT323', monospace;
+  font-size: 30px;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: none;
+  margin-top: 4px;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+body.teletext .feels #feels { color: #ffea00; }
+
+body.teletext .grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 36px;
+  padding-top: 8px;
+  font-family: 'VT323', monospace;
+}
+body.teletext .card {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 4px 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  align-items: baseline;
+  column-gap: 14px;
+}
+body.teletext .card .label {
+  color: #00f0ff;
+  text-shadow: none;
+  font-family: 'VT323', monospace;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+body.teletext .card .val {
+  font-family: 'VT323', monospace;
+  font-size: 30px;
+  margin-top: 0;
+  color: #ffea00;
+}
+body.teletext .card .unit {
+  font-size: 22px;
+  letter-spacing: 0;
+  margin-left: 6px;
+  color: #ffea00;
+  opacity: 0.85;
+}
+
+body.teletext .wind-card { align-items: center; }
+body.teletext .wind-card .label { align-self: center; }
+body.teletext .wind-body { gap: 14px; margin-top: 0; }
+body.teletext .compass-svg {
+  width: 60px;
+  height: 60px;
+  filter: none;
+}
+body.teletext .compass-svg > circle { stroke: #ffea00; }
+body.teletext .compass-svg > g[stroke] line { stroke: #ffea00; }
+body.teletext .compass-svg text { fill: #ffea00; }
+body.teletext #wind-needle line { stroke: #ff19a8; filter: none; }
+body.teletext #wind-needle polygon { fill: #ff19a8; }
+body.teletext #wind-needle { filter: drop-shadow(0 0 0 transparent); }
+body.teletext .wind-dir {
+  color: #fff;
+  text-shadow: none;
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+body.teletext .trend {
+  font-family: 'VT323', monospace;
+}
+body.teletext .trend.up { color: #ff19a8; text-shadow: none; }
+body.teletext .trend.down { color: #00f0ff; text-shadow: none; }
+body.teletext .temp .trend { font-size: 0.32em; vertical-align: 0.4em; }
+body.teletext .feels .trend { font-size: 1em; }
+
+body.teletext footer.foot {
+  color: #fff;
+  text-shadow: none;
+  font-family: 'VT323', monospace;
+  font-size: 24px;
+  letter-spacing: 0.06em;
+  margin-top: 26px;
+  border-top: 2px solid #ffea00;
+  padding-top: 10px;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+body.teletext .notice {
+  background: #cc1818;
+  border-color: #cc1818;
+  color: #fff;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  text-shadow: none;
+  letter-spacing: 0.06em;
+  border-radius: 0;
+}
+
+@media (max-width: 600px) {
+  body.teletext .content { padding: 14px 12px; }
+  body.teletext header.bar { font-size: 16px; }
+  body.teletext .theme-toggle button { font-size: 13px; padding: 2px 6px; }
+  body.teletext .center { padding: 10px 0 14px; margin: 12px 0 10px; }
+  body.teletext .temp { font-size: clamp(60px, 22vw, 110px); }
+  body.teletext .feels { font-size: 18px; }
+  body.teletext .grid { grid-template-columns: 1fr; gap: 2px; }
+  body.teletext .card { grid-template-columns: 130px 1fr; column-gap: 10px; }
+  body.teletext .card .label { font-size: 18px; }
+  body.teletext .card .val { font-size: 22px; }
+  body.teletext .card .unit { font-size: 16px; }
+  body.teletext .compass-svg { width: 48px; height: 48px; }
+  body.teletext .wind-dir { font-size: 14px; }
+  body.teletext footer.foot { font-size: 16px; margin-top: 14px; }
 }
 </style>
 </head>
@@ -276,8 +503,14 @@ footer.foot {
 
 <div class="content">
   <header class="bar">
-    <span class="station-name">▶ STATION IZURIC65 · ZÜRICH</span>
-    <span class="live">● LIVE</span>
+    <span class="station-name">▶ MAESTRO'S WEATHER STATION · ZÜRICH</span>
+    <div class="header-right">
+      <div class="theme-toggle" role="group" aria-label="Theme">
+        <button type="button" data-theme-set="synthwave">SYNTH</button>
+        <button type="button" data-theme-set="teletext">TXT</button>
+      </div>
+      <span class="live">● LIVE</span>
+    </div>
   </header>
 
   <div class="center">
@@ -286,10 +519,6 @@ footer.foot {
   </div>
 
   <div class="grid">
-    <div class="card c-cyan">
-      <div class="label">HUMIDITY</div>
-      <div class="val"><span id="hum">--</span>%<span class="trend" id="hum-tr"></span></div>
-    </div>
     <div class="card c-pink wind-card">
       <div class="label">WIND</div>
       <div class="wind-body">
@@ -309,9 +538,9 @@ footer.foot {
             <text x="17" y="54">W</text>
           </g>
           <g id="wind-needle">
-            <line x1="50" y1="50" x2="50" y2="22" stroke="#ff19a8" stroke-width="2.5" stroke-linecap="round"/>
-            <polygon points="50,12 44,26 56,26" fill="#ff19a8"/>
-            <circle cx="50" cy="50" r="3" fill="#ff19a8"/>
+            <!-- Tail on the outer ring (top), tip at the center: shaft + arrowhead pointing inward. -->
+            <line x1="50" y1="6" x2="50" y2="40" stroke="#ff19a8" stroke-width="2.5" stroke-linecap="round"/>
+            <polygon points="50,50 42,32 58,32" fill="#ff19a8"/>
           </g>
         </svg>
         <div class="wind-stats">
@@ -320,6 +549,26 @@ footer.foot {
         </div>
       </div>
     </div>
+    <div class="card c-pink">
+      <div class="label">GUST</div>
+      <div class="val"><span id="gust">--</span><span class="unit">km/h</span><span class="trend" id="gust-tr"></span></div>
+    </div>
+    <div class="card c-yellow">
+      <div class="label">RAIN RATE</div>
+      <div class="val"><span id="rate">--.-</span><span class="unit">mm/h</span><span class="trend" id="rate-tr"></span></div>
+    </div>
+    <div class="card c-yellow">
+      <div class="label">RAIN TODAY</div>
+      <div class="val"><span id="rain">--.-</span><span class="unit">mm</span><span class="trend" id="rain-tr"></span></div>
+    </div>
+    <div class="card c-cyan">
+      <div class="label">HUMIDITY</div>
+      <div class="val"><span id="hum">--</span>%<span class="trend" id="hum-tr"></span></div>
+    </div>
+    <div class="card c-cyan">
+      <div class="label">DEW POINT</div>
+      <div class="val"><span id="dew">--.-</span>°<span class="trend" id="dew-tr"></span></div>
+    </div>
     <div class="card c-yellow">
       <div class="label">PRESSURE</div>
       <div class="val"><span id="press">----</span><span class="unit">hPa</span><span class="trend" id="press-tr"></span></div>
@@ -327,18 +576,6 @@ footer.foot {
     <div class="card c-purple">
       <div class="label">UV INDEX</div>
       <div class="val"><span id="uv">--</span><span class="trend" id="uv-tr"></span></div>
-    </div>
-    <div class="card c-cyan">
-      <div class="label">DEW POINT</div>
-      <div class="val"><span id="dew">--.-</span>°<span class="trend" id="dew-tr"></span></div>
-    </div>
-    <div class="card c-pink">
-      <div class="label">GUST</div>
-      <div class="val"><span id="gust">--</span><span class="unit">km/h</span><span class="trend" id="gust-tr"></span></div>
-    </div>
-    <div class="card c-yellow">
-      <div class="label">RAIN TODAY</div>
-      <div class="val"><span id="rain">--.-</span><span class="unit">mm</span><span class="trend" id="rain-tr"></span></div>
     </div>
     <div class="card c-purple">
       <div class="label">SOLAR</div>
@@ -372,6 +609,25 @@ const DIRS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W'
 const compass = d => DIRS[Math.round(d / 22.5) % 16];
 const pad = (n, l = 2) => String(n).padStart(l, '0');
 
+// ── Theme toggle ──────────────────────────────────────
+const THEME_KEY = 'wx_theme_v1';
+function applyTheme(t) {
+  if (t !== 'teletext') t = 'synthwave';
+  document.body.classList.toggle('teletext', t === 'teletext');
+  document.querySelectorAll('[data-theme-set]').forEach(b => {
+    b.classList.toggle('active', b.dataset.themeSet === t);
+  });
+  try { localStorage.setItem(THEME_KEY, t); } catch (_) {}
+}
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch (_) {}
+  applyTheme(saved || 'synthwave');
+  document.querySelectorAll('[data-theme-set]').forEach(b => {
+    b.addEventListener('click', () => applyTheme(b.dataset.themeSet));
+  });
+})();
+
 function notify(msg) {
   const el = $('notice');
   if (!msg) { el.classList.remove('show'); return; }
@@ -401,7 +657,7 @@ function setVal(id, val, decimals, dash) {
 const prev = {};
 const TREND_THRESH = {
   temp: 0.1, feels: 0.1, hum: 1, wind: 1, gust: 1,
-  press: 0.5, dew: 0.1, rain: 0.1, solar: 5, uv: 0.1
+  press: 0.5, dew: 0.1, rain: 0.1, rate: 0.1, solar: 5, uv: 0.1
 };
 
 const QUOTA_KEY = 'wu_quota_v1';
@@ -471,6 +727,7 @@ async function update() {
     const press = m.pressure;
     const dew   = m.dewpt;
     const rain  = m.precipTotal;
+    const rate  = m.precipRate;
     const solar = o.solarRadiation;
     const uv    = o.uv;
     const wdir  = o.winddir;
@@ -483,12 +740,16 @@ async function update() {
     setVal('press', press, 0, '----');
     setVal('dew',   dew,   1, '--.-');
     setVal('rain',  rain,  1, '--.-');
+    setVal('rate',  rate,  1, '--.-');
     setVal('solar', solar, 0, '---');
     setVal('uv',    uv,    1, '--');
 
     // Compass needle: rotate to wind direction, or dim out if missing.
     const needle = $('wind-needle');
     if (hasVal(wdir)) {
+      // wdir is degrees the wind is coming FROM (meteorological convention).
+      // The needle's tail sits on the outer ring, tip at the center, so rotating
+      // by wdir places the tail at the source bearing — wind flows inward.
       needle.style.transform = 'rotate(' + wdir + 'deg)';
       needle.classList.remove('no-dir');
       $('winddir').textContent = compass(wdir);
@@ -507,6 +768,7 @@ async function update() {
     setTrend('press', press);
     setTrend('dew',   dew);
     setTrend('rain',  rain);
+    setTrend('rate',  rate);
     setTrend('solar', solar);
     setTrend('uv',    uv);
 
