@@ -173,6 +173,90 @@ header.bar {
 /* If the API doesn't return a value, drop the whole card from the grid. */
 .card.no-data { display: none; }
 
+/* ── Limmat hero card (synthwave) ──
+   Promoted out of the grid — wider, brighter, animated wave fill at the
+   bottom so the river temperature reads at a glance and feels "alive". */
+.water-card {
+  position: relative;
+  margin: 22px 0 6px;
+  padding: 22px 28px 30px;
+  border: 1px solid #00f0ff;
+  border-radius: 8px;
+  background:
+    radial-gradient(ellipse at top, rgba(0, 240, 255, 0.18), transparent 70%),
+    linear-gradient(180deg, rgba(0, 35, 70, 0.55), rgba(0, 80, 140, 0.4));
+  box-shadow:
+    0 0 24px rgba(0, 240, 255, 0.45),
+    inset 0 0 30px rgba(0, 240, 255, 0.12);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 12px;
+}
+.water-card .water-head { display: flex; flex-direction: column; gap: 4px; }
+.water-card .label {
+  color: #00f0ff;
+  text-shadow: 0 0 8px #00f0ff, 0 0 16px rgba(0, 240, 255, 0.55);
+  font-size: 14px;
+  letter-spacing: 0.28em;
+}
+.water-card .water-sub {
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  color: #7fefff;
+  opacity: 0.7;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.55);
+}
+.water-card .val {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: clamp(54px, 9vw, 88px);
+  line-height: 0.95;
+  color: #fff;
+  text-shadow:
+    0 0 10px #00f0ff,
+    0 0 22px #00f0ff,
+    0 0 40px rgba(0, 240, 255, 0.6);
+  margin: 0;
+}
+.water-card .val .unit {
+  font-size: 0.34em;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+  margin-left: 4px;
+  vertical-align: 0.55em;
+}
+.water-card .val .trend {
+  font-size: 0.28em;
+  vertical-align: 0.6em;
+  margin-left: 0.2em;
+}
+.water-card .water-waves {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 36px;
+  pointer-events: none;
+  filter: drop-shadow(0 -2px 8px rgba(0, 240, 255, 0.6));
+}
+.water-card .water-ascii { display: none; }
+
+/* ── Rain layer (synthwave scene) ──
+   JS populates with <line> drops. Each gets a random animation-delay
+   inline so they're out of phase. */
+@keyframes rainfall {
+  0%   { transform: translateY(-30px); opacity: 0; }
+  10%  { opacity: 0.85; }
+  90%  { opacity: 0.85; }
+  100% { transform: translateY(180px); opacity: 0; }
+}
+#rain-layer line {
+  animation: rainfall 0.9s linear infinite;
+  transform-box: fill-box;
+}
+
 /* Skyline is teletext-only; hidden by default in the synthwave theme. */
 .skyline { display: none; }
 
@@ -243,6 +327,8 @@ footer.foot {
   .content { padding: 18px 14px; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .card { padding: 10px 12px; }
+  .water-card { padding: 16px 18px 24px; margin: 16px 0 4px; }
+  .water-card .val { font-size: clamp(44px, 14vw, 64px); }
   .card .val { font-size: 22px; }
   .compass-svg { width: 56px; height: 56px; }
   .wind-card .wind-body { gap: 8px; margin-top: 4px; }
@@ -370,6 +456,72 @@ body.teletext .center {
 
 /* UV and Solar are dropped entirely in teletext, regardless of API value. */
 body.teletext .card.c-purple { display: none; }
+
+/* ── Limmat hero (teletext) ──
+   Full-width bordered band, oversized VT323 readout, ASCII waves below. */
+body.teletext .water-card {
+  display: block;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-top: 6px dashed #00f0ff;
+  border-bottom: 6px dashed #00f0ff;
+  border-radius: 0;
+  margin: 14px 0 0;
+  padding: 10px 0 8px;
+  text-align: center;
+  overflow: visible;
+}
+body.teletext .water-card .water-waves { display: none; }
+body.teletext .water-card .water-head {
+  display: block;
+  margin-bottom: 4px;
+}
+body.teletext .water-card .label {
+  font-family: 'VT323', monospace;
+  font-size: 28px;
+  color: #00f0ff;
+  text-shadow: 0 0 4px #00f0ff;
+  letter-spacing: 0.05em;
+  font-weight: 400;
+}
+body.teletext .water-card .water-sub {
+  display: none;
+}
+body.teletext .water-card .val {
+  font-family: 'VT323', monospace;
+  font-size: clamp(56px, 11vw, 92px);
+  color: #00f0ff;
+  text-shadow:
+    -1.5px 0 0 rgba(255, 40, 90, 0.55),
+     1.5px 0 0 rgba(70, 170, 255, 0.55),
+     0 0 8px #00f0ff;
+  margin: 0;
+  line-height: 1;
+}
+body.teletext .water-card .val .unit {
+  font-family: 'VT323', monospace;
+  font-size: 0.42em;
+  letter-spacing: 0.04em;
+  margin-left: 4px;
+  opacity: 0.8;
+  vertical-align: 0.5em;
+}
+body.teletext .water-card .val .trend {
+  font-family: 'VT323', monospace;
+  font-size: 0.34em;
+  vertical-align: 0.55em;
+}
+body.teletext .water-card .water-ascii {
+  display: block;
+  font-family: 'VT323', monospace;
+  font-size: 24px;
+  letter-spacing: 0.05em;
+  color: #00f0ff;
+  text-shadow: 0 0 3px #00f0ff;
+  opacity: 0.75;
+  margin-top: 4px;
+}
 
 body.teletext .skyline {
   display: block;
@@ -590,7 +742,13 @@ body.teletext .card .trend.down {
     <circle cx="340"  cy="180" r="0.9" opacity="0.7"/>
     <circle cx="820"  cy="240" r="1.1" opacity="0.75"/>
   </g>
-  <circle cx="600" cy="450" r="190" fill="url(#sungrad)" clip-path="url(#sunclip)"/>
+  <circle id="sun" cx="600" cy="450" r="190" fill="url(#sungrad)" clip-path="url(#sunclip)"/>
+
+  <!-- Wind streaks — populated by JS based on wind speed/direction. -->
+  <g id="wind-layer" stroke="#ff7fd6" stroke-linecap="round" fill="none"></g>
+
+  <!-- Rain layer — populated by JS when precip rate > 0. -->
+  <g id="rain-layer" stroke="#7fefff" stroke-linecap="round"></g>
 
   <!-- Zürich skyline silhouette: Fraumünster · St. Peter · Grossmünster twin towers,
        flanked by old-town rows. Sits in front of the sun, on the horizon at y=600. -->
@@ -673,6 +831,31 @@ body.teletext .card .trend.down {
     <div class="feels">FEELS LIKE <span id="feels">--.-</span>°<span class="trend" id="feels-tr"></span></div>
   </div>
 
+  <!-- Limmat river temperature — featured because it's the soul of summer in Zürich.
+       Hidden via .card.no-data when the scraper returns nothing. -->
+  <div class="card water-card" id="water-card">
+    <div class="water-head">
+      <div class="label">LIMMAT · KW LETTEN</div>
+      <div class="water-sub">RIVER TEMPERATURE</div>
+    </div>
+    <div class="val"><span id="water">--.-</span><span class="unit">°C</span><span class="trend" id="water-tr"></span></div>
+    <svg class="water-waves" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true">
+      <path fill="rgba(0, 240, 255, 0.22)">
+        <animate attributeName="d" dur="7s" repeatCount="indefinite"
+          values="M0,22 Q50,8  100,22 T200,22 T300,22 T400,22 V40 H0Z;
+                  M0,22 Q50,34 100,22 T200,22 T300,22 T400,22 V40 H0Z;
+                  M0,22 Q50,8  100,22 T200,22 T300,22 T400,22 V40 H0Z"/>
+      </path>
+      <path fill="rgba(0, 240, 255, 0.35)">
+        <animate attributeName="d" dur="5s" repeatCount="indefinite"
+          values="M0,28 Q60,18 120,28 T240,28 T360,28 T480,28 V40 H0Z;
+                  M0,28 Q60,38 120,28 T240,28 T360,28 T480,28 V40 H0Z;
+                  M0,28 Q60,18 120,28 T240,28 T360,28 T480,28 V40 H0Z"/>
+      </path>
+    </svg>
+    <div class="water-ascii" aria-hidden="true">≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈ ≈</div>
+  </div>
+
   <!-- Pixelated Zürich skyline — visible only in teletext mode.
        80×28 unit grid, chunky teletext palette (black sky / yellow stars / magenta
        sunset / green hills / white buildings / cyan lake). Identifiable landmarks:
@@ -693,6 +876,19 @@ body.teletext .card .trend.down {
       <rect x="71" y="4" width="1" height="1"/>
       <rect x="77" y="1" width="1" height="1"/>
     </g>
+
+    <!-- Pixel sun — JS recolors via the data-sun fill on each <rect>.
+         5×5 chunky disc, top-right of the sky so it doesn't fight the spires. -->
+    <g id="tt-sun" fill="#ffea00">
+      <rect x="65" y="3" width="3" height="1"/>
+      <rect x="64" y="4" width="5" height="1"/>
+      <rect x="64" y="5" width="5" height="1"/>
+      <rect x="64" y="6" width="5" height="1"/>
+      <rect x="65" y="7" width="3" height="1"/>
+    </g>
+
+    <!-- Wind streaks — populated by JS. Animated drift across the sky. -->
+    <g id="tt-wind" fill="#ffffff" opacity="0.6"></g>
 
     <!-- Sunset horizon band -->
     <rect x="0" y="11" width="80" height="1" fill="#ff19a8"/>
@@ -818,6 +1014,9 @@ body.teletext .card .trend.down {
       <rect x="51" y="22" width="4" height="2"/>
       <rect x="57" y="22" width="4" height="2"/>
     </g>
+
+    <!-- Pixel rain — populated by JS when precip rate > 0. -->
+    <g id="tt-rain" fill="#00f0ff"></g>
   </svg>
 
   <div class="grid">
@@ -882,10 +1081,6 @@ body.teletext .card .trend.down {
     <div class="card c-purple">
       <div class="label">SOLAR</div>
       <div class="val"><span id="solar">---</span><span class="unit">W/m²</span><span class="trend" id="solar-tr"></span></div>
-    </div>
-    <div class="card c-cyan">
-      <div class="label">LIMMAT</div>
-      <div class="val"><span id="water">--.-</span>°<span class="trend" id="water-tr"></span></div>
     </div>
   </div>
 
@@ -1003,6 +1198,182 @@ function setTrend(key, current) {
   }
 }
 
+// ── Weather-adaptive scene ───────────────────────────
+// Repaints the synthwave scene (sun brightness, falling rain) and the
+// teletext skyline (pixel rain) to reflect current conditions. Called
+// each successful weather poll.
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const lastWeather = { temp: null, rate: null, wdir: null, wind: null };
+
+function paintSceneRain(rate, wdir, wind) {
+  const layer = $('rain-layer');
+  if (!layer) return;
+  // Clear whatever was there.
+  while (layer.firstChild) layer.removeChild(layer.firstChild);
+  if (!(rate > 0)) return;
+  // Density scales with rate (mm/h). Cap so heavy rain doesn't melt the GPU.
+  const density = Math.min(120, 30 + Math.floor(rate * 12));
+  // Wind tilt: wdir is "from" direction, so we want drops to drift TO the
+  // opposite. Sin gives the horizontal component. Scale by wind speed.
+  const windFactor = hasVal(wind) ? Math.min(1, wind / 40) : 0;
+  const tilt = hasVal(wdir) ? -Math.sin((wdir + 180) * Math.PI / 180) * 14 * windFactor : 0;
+  for (let i = 0; i < density; i++) {
+    const x = Math.random() * 1200;
+    const y = Math.random() * 580;
+    const len = 10 + Math.random() * 10;
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', x);
+    line.setAttribute('y1', y);
+    line.setAttribute('x2', x + tilt);
+    line.setAttribute('y2', y + len);
+    line.setAttribute('stroke-width', 1.1 + Math.random() * 0.6);
+    line.setAttribute('opacity', 0.55 + Math.random() * 0.3);
+    line.style.animationDelay = (-Math.random() * 0.9) + 's';
+    line.style.animationDuration = (0.6 + Math.random() * 0.5) + 's';
+    layer.appendChild(line);
+  }
+}
+
+function paintTeletextRain(rate, wdir) {
+  const layer = $('tt-rain');
+  if (!layer) return;
+  while (layer.firstChild) layer.removeChild(layer.firstChild);
+  if (!(rate > 0)) return;
+  // 80×11 sky region above the sunset band. Keep it sparse so the skyline
+  // still reads — teletext aesthetics, not a downpour. Wind direction
+  // tilts each drop into a two-pixel diagonal streak.
+  const density = Math.min(50, 10 + Math.floor(rate * 5));
+  const dirSign = hasVal(wdir) ? Math.sign(-Math.sin((wdir + 180) * Math.PI / 180)) : 0;
+  for (let i = 0; i < density; i++) {
+    const x = Math.floor(Math.random() * 80);
+    const y = Math.floor(Math.random() * 10);
+    // Top pixel of the streak.
+    const r1 = document.createElementNS(SVG_NS, 'rect');
+    r1.setAttribute('x', x); r1.setAttribute('y', y);
+    r1.setAttribute('width', 1); r1.setAttribute('height', 1);
+    layer.appendChild(r1);
+    // Bottom pixel, offset by wind sign for diagonal feel.
+    const r2 = document.createElementNS(SVG_NS, 'rect');
+    r2.setAttribute('x', x + dirSign);
+    r2.setAttribute('y', y + 1);
+    r2.setAttribute('width', 1); r2.setAttribute('height', 1);
+    r2.setAttribute('opacity', 0.55);
+    layer.appendChild(r2);
+  }
+}
+
+// Synthwave sun — temperature drives brightness + saturation.
+function tuneSun(temp) {
+  const sun = $('sun');
+  if (!sun || !hasVal(temp)) return;
+  // Hot → brighter and slightly more saturated; cold → dimmer/paler.
+  // Anchored at 15°C neutral, clamped so extremes still read.
+  const delta = temp - 15;
+  const brightness = Math.max(0.6, Math.min(1.35, 1 + delta * 0.018));
+  const saturate   = Math.max(0.7, Math.min(1.3,  1 + delta * 0.015));
+  sun.style.filter = `brightness(${brightness.toFixed(2)}) saturate(${saturate.toFixed(2)})`;
+}
+
+// Teletext pixel sun — temperature shifts color from cyan-cold → yellow-mild
+// → orange-hot → red-scorching, using the teletext palette.
+function paintTeletextSun(temp) {
+  const sun = $('tt-sun');
+  if (!sun) return;
+  let fill = '#ffea00'; // mild default
+  if (hasVal(temp)) {
+    if      (temp <= 0)  fill = '#00f0ff'; // ice cyan
+    else if (temp < 10)  fill = '#ffffff'; // pale winter sun
+    else if (temp < 20)  fill = '#ffea00'; // teletext yellow
+    else if (temp < 28)  fill = '#ff8800'; // warm orange
+    else                 fill = '#ff4646'; // scorching red
+  }
+  sun.setAttribute('fill', fill);
+}
+
+// Teletext wind streaks — short horizontal pixel rows that drift across the
+// sky. Count + speed scale with wind, direction with wdir.
+function paintTeletextWind(wind, wdir) {
+  const layer = $('tt-wind');
+  if (!layer) return;
+  while (layer.firstChild) layer.removeChild(layer.firstChild);
+  if (!hasVal(wind) || wind < 5) return;
+  const count = Math.min(6, Math.floor(wind / 6) + 1);
+  const dirSign = hasVal(wdir) ? (-Math.sin((wdir + 180) * Math.PI / 180) >= 0 ? 1 : -1) : 1;
+  // Faster wind → shorter cycle (smaller dur).
+  const dur = Math.max(3, 14 - wind / 5);
+  for (let i = 0; i < count; i++) {
+    const y = 1 + Math.floor(Math.random() * 9);
+    const len = 2 + Math.floor(Math.random() * 4);
+    const streak = document.createElementNS(SVG_NS, 'g');
+    for (let k = 0; k < len; k++) {
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('x', k);
+      rect.setAttribute('y', 0);
+      rect.setAttribute('width', 1);
+      rect.setAttribute('height', 1);
+      streak.appendChild(rect);
+    }
+    // Off-screen start, drift to off-screen end. dirSign sets direction.
+    const startX = dirSign > 0 ? -len - 2 : 82;
+    const endX   = dirSign > 0 ? 82 : -len - 2;
+    const anim = document.createElementNS(SVG_NS, 'animateTransform');
+    anim.setAttribute('attributeName', 'transform');
+    anim.setAttribute('type', 'translate');
+    anim.setAttribute('from', startX + ' ' + y);
+    anim.setAttribute('to',   endX   + ' ' + y);
+    anim.setAttribute('dur', (dur + Math.random() * dur * 0.5).toFixed(1) + 's');
+    anim.setAttribute('repeatCount', 'indefinite');
+    anim.setAttribute('begin', (-Math.random() * dur).toFixed(2) + 's');
+    streak.appendChild(anim);
+    layer.appendChild(streak);
+  }
+}
+
+// Synthwave wind streaks — long pink/cyan lines drifting across the upper
+// portion of the scene, hue mirrors the existing palette.
+function paintSceneWind(wind, wdir) {
+  const layer = $('wind-layer');
+  if (!layer) return;
+  while (layer.firstChild) layer.removeChild(layer.firstChild);
+  if (!hasVal(wind) || wind < 5) return;
+  const count = Math.min(18, Math.floor(wind / 3) + 3);
+  const dirSign = hasVal(wdir) ? (-Math.sin((wdir + 180) * Math.PI / 180) >= 0 ? 1 : -1) : 1;
+  const dur = Math.max(2.5, 10 - wind / 6);
+  for (let i = 0; i < count; i++) {
+    const y = 80 + Math.random() * 470;
+    const len = 70 + Math.random() * 130;
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', 0);
+    line.setAttribute('y1', y);
+    line.setAttribute('x2', len * dirSign);
+    line.setAttribute('y2', y);
+    line.setAttribute('stroke-width', (0.8 + Math.random() * 0.8).toFixed(2));
+    line.setAttribute('opacity', (0.25 + Math.random() * 0.3).toFixed(2));
+    const startX = dirSign > 0 ? -len - 50 : 1250;
+    const endX   = dirSign > 0 ? 1250 : -len - 50;
+    const anim = document.createElementNS(SVG_NS, 'animateTransform');
+    anim.setAttribute('attributeName', 'transform');
+    anim.setAttribute('type', 'translate');
+    anim.setAttribute('from', startX + ' 0');
+    anim.setAttribute('to',   endX   + ' 0');
+    anim.setAttribute('dur', (dur + Math.random() * dur * 0.5).toFixed(1) + 's');
+    anim.setAttribute('repeatCount', 'indefinite');
+    anim.setAttribute('begin', (-Math.random() * dur).toFixed(2) + 's');
+    line.appendChild(anim);
+    layer.appendChild(line);
+  }
+}
+
+function applyWeatherEffects(data) {
+  Object.assign(lastWeather, data);
+  paintSceneRain(lastWeather.rate, lastWeather.wdir, lastWeather.wind);
+  paintSceneWind(lastWeather.wind, lastWeather.wdir);
+  tuneSun(lastWeather.temp);
+  paintTeletextRain(lastWeather.rate, lastWeather.wdir);
+  paintTeletextSun(lastWeather.temp);
+  paintTeletextWind(lastWeather.wind, lastWeather.wdir);
+}
+
 async function update() {
   if (API_KEY === 'YOUR_API_KEY_HERE') {
     notify('Set your API_KEY in the HTML file');
@@ -1079,6 +1450,8 @@ async function update() {
     setTrend('rate',  rate);
     setTrend('solar', solar);
     setTrend('uv',    uv);
+
+    applyWeatherEffects({ temp, rate, wdir, wind });
 
     const t = o.obsTimeLocal ? new Date(o.obsTimeLocal.replace(' ', 'T')) : new Date();
     $('updated').textContent = pad(t.getHours()) + ':' + pad(t.getMinutes()) + ':' + pad(t.getSeconds());
