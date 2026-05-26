@@ -476,7 +476,9 @@ body.teletext .card.c-purple { display: none; }
 
 /* ── Limmat hero (teletext) ──
    Full-width bordered band, oversized VT323 readout, ASCII waves below. */
-body.teletext .water-card {
+/* .card.water-card (specificity 0,3,1) wins over body.teletext .card
+   (0,2,1) which would otherwise re-impose its 170px label + 1fr val grid. */
+body.teletext .card.water-card {
   display: block;
   background: transparent;
   border: 0;
@@ -489,12 +491,16 @@ body.teletext .water-card {
   text-align: center;
   overflow: visible;
 }
-body.teletext .water-card .water-waves { display: none; }
-body.teletext .water-card .water-head {
-  display: block;
-  margin-bottom: 4px;
+body.teletext .card.water-card .water-waves { display: none; }
+/* Label and value are inline-blocks so text-align:center on the card
+   centers them as a single horizontal group. Waves stay on their own
+   block line below, free to span full width. */
+body.teletext .card.water-card .water-head {
+  display: inline-block;
+  vertical-align: baseline;
+  margin: 0 18px 0 0;
 }
-body.teletext .water-card .label {
+body.teletext .card.water-card .label {
   font-family: 'VT323', monospace;
   font-size: 28px;
   color: #00f0ff;
@@ -502,10 +508,12 @@ body.teletext .water-card .label {
   letter-spacing: 0.05em;
   font-weight: 400;
 }
-body.teletext .water-card .water-sub {
+body.teletext .card.water-card .water-sub {
   display: none;
 }
-body.teletext .water-card .val {
+body.teletext .card.water-card .val {
+  display: inline-block;
+  vertical-align: baseline;
   font-family: 'VT323', monospace;
   font-size: clamp(56px, 11vw, 92px);
   color: #00f0ff;
@@ -516,7 +524,7 @@ body.teletext .water-card .val {
   margin: 0;
   line-height: 1;
 }
-body.teletext .water-card .val .unit {
+body.teletext .card.water-card .val .unit {
   font-family: 'VT323', monospace;
   font-size: 0.42em;
   letter-spacing: 0.04em;
@@ -524,20 +532,23 @@ body.teletext .water-card .val .unit {
   opacity: 0.8;
   vertical-align: 0.5em;
 }
-body.teletext .water-card .val .trend {
+body.teletext .card.water-card .val .trend {
   font-family: 'VT323', monospace;
   font-size: 0.34em;
   vertical-align: 0.55em;
 }
-body.teletext .water-card .water-ascii {
+/* Spread the ≈ glyphs across the full card width via justified text.
+   text-align-last forces justification on the single (and last) line. */
+body.teletext .card.water-card .water-ascii {
   display: block;
   font-family: 'VT323', monospace;
   font-size: 24px;
-  letter-spacing: 0.05em;
   color: #00f0ff;
   text-shadow: 0 0 3px #00f0ff;
   opacity: 0.75;
   margin-top: 4px;
+  text-align: justify;
+  text-align-last: justify;
 }
 
 body.teletext .skyline {
