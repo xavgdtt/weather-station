@@ -31,6 +31,23 @@ body {
   z-index: 0;
 }
 
+/* Full-screen tint layer driven by tempFilter — sits above the scene but
+   below the .content cards so the foreground UI keeps its own palette. */
+.temp-tint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100lvh;
+  pointer-events: none;
+  z-index: 1;
+  background-color: transparent;
+  mix-blend-mode: color;
+  transition: background-color 0.8s ease;
+}
+body.teletext .temp-tint { display: none; }
+
 .content {
   position: relative;
   z-index: 2;
@@ -814,6 +831,11 @@ body.teletext .card .trend.down {
   </g>
 </svg>
 
+<!-- Temperature tint — sits above the scene + body bg, below the content.
+     Color + opacity driven by JS; mix-blend-mode hue shifts only the hue of
+     pixels beneath, preserving brightness and the content cards' own colors. -->
+<div class="temp-tint" id="temp-tint"></div>
+
 <div class="content">
   <header class="bar">
     <span class="station-name">▶ MAESTRO'S WEATHER STATION · ZÜRICH</span>
@@ -1213,10 +1235,10 @@ function paintSceneRain(rate, wdir, wind) {
   if (!(rate > 0)) return;
   // Density scales with rate (mm/h). Cap so heavy rain doesn't melt the GPU.
   const density = Math.min(120, 30 + Math.floor(rate * 12));
-  // Wind tilt: wdir is "from" direction, so we want drops to drift TO the
-  // opposite. Sin gives the horizontal component. Scale by wind speed.
+  // Wind tilt: wdir is "from" direction, so wind blows toward wdir+180.
+  // sin of that gives the east-component (positive = right). Scale by wind.
   const windFactor = hasVal(wind) ? Math.min(1, wind / 40) : 0;
-  const tilt = hasVal(wdir) ? -Math.sin((wdir + 180) * Math.PI / 180) * 14 * windFactor : 0;
+  const tilt = hasVal(wdir) ? Math.sin((wdir + 180) * Math.PI / 180) * 14 * windFactor : 0;
   for (let i = 0; i < density; i++) {
     const x = Math.random() * 1200;
     const y = Math.random() * 580;
@@ -1243,7 +1265,7 @@ function paintTeletextRain(rate, wdir) {
   // still reads — teletext aesthetics, not a downpour. Wind direction
   // tilts each drop into a two-pixel diagonal streak.
   const density = Math.min(50, 10 + Math.floor(rate * 5));
-  const dirSign = hasVal(wdir) ? Math.sign(-Math.sin((wdir + 180) * Math.PI / 180)) : 0;
+  const dirSign = hasVal(wdir) ? Math.sign(Math.sin((wdir + 180) * Math.PI / 180)) : 0;
   for (let i = 0; i < density; i++) {
     const x = Math.floor(Math.random() * 80);
     const y = Math.floor(Math.random() * 10);
@@ -1262,32 +1284,51 @@ function paintTeletextRain(rate, wdir) {
   }
 }
 
-// Synthwave sun — temperature drives brightness + saturation.
-function tuneSun(temp) {
-  const sun = $('sun');
-  if (!sun || !hasVal(temp)) return;
-  // Hot → brighter and slightly more saturated; cold → dimmer/paler.
-  // Anchored at 15°C neutral, clamped so extremes still read.
+// Temperature → CSS filter pipeline. Sepia collapses each input color onto
+// a single brown-orange base; hue-rotate then takes it cool (cyan/blue at
+// 180°) or warm (deep red at -30°). Saturation amplifies the vibe.
+// 15°C is neutral (no filter applied) so the original palette shows through.
+function tempFilter(temp, opts) {
+  if (!hasVal(temp)) return '';
   const delta = temp - 15;
-  const brightness = Math.max(0.6, Math.min(1.35, 1 + delta * 0.018));
-  const saturate   = Math.max(0.7, Math.min(1.3,  1 + delta * 0.015));
-  sun.style.filter = `brightness(${brightness.toFixed(2)}) saturate(${saturate.toFixed(2)})`;
+  if (Math.abs(delta) < 1) return '';
+  const absD = Math.abs(delta);
+  const cfg = opts || {};
+  const sepiaAmt = Math.min(cfg.sepiaMax ?? 1.0, absD * (cfg.sepiaRate ?? 0.06));
+  const hue = delta < 0 ? 180 : -40;
+  const sat = 1 + Math.min(cfg.satMax ?? 1.8, absD * (cfg.satRate ?? 0.11));
+  // Hot: slightly darker for a burning feel; cold: slightly brighter (icy).
+  const bri = delta > 0 ? Math.max(0.85, 1 - delta * 0.006)
+                        : Math.min(1.12, 1 + absD * 0.005);
+  return `sepia(${sepiaAmt.toFixed(2)}) hue-rotate(${hue}deg) saturate(${sat.toFixed(2)}) brightness(${bri.toFixed(2)})`;
 }
 
-// Teletext pixel sun — temperature shifts color from cyan-cold → yellow-mild
-// → orange-hot → red-scorching, using the teletext palette.
-function paintTeletextSun(temp) {
-  const sun = $('tt-sun');
-  if (!sun) return;
-  let fill = '#ffea00'; // mild default
-  if (hasVal(temp)) {
-    if      (temp <= 0)  fill = '#00f0ff'; // ice cyan
-    else if (temp < 10)  fill = '#ffffff'; // pale winter sun
-    else if (temp < 20)  fill = '#ffea00'; // teletext yellow
-    else if (temp < 28)  fill = '#ff8800'; // warm orange
-    else                 fill = '#ff4646'; // scorching red
-  }
-  sun.setAttribute('fill', fill);
+// Synthwave — drive the full-screen tint overlay (mix-blend-mode: color)
+// so the body background AND the .scene SVG shift cool↔warm together.
+// The .content cards stay above the overlay and keep their own colors.
+function tuneSun(temp) {
+  const tint = $('temp-tint');
+  if (!tint) return;
+  if (!hasVal(temp)) { tint.style.backgroundColor = 'transparent'; return; }
+  const delta = temp - 15;
+  if (Math.abs(delta) < 1) { tint.style.backgroundColor = 'transparent'; return; }
+  const absD = Math.abs(delta);
+  // Opacity ramps with |delta|, capping around |20°C| from neutral.
+  const alpha = Math.min(0.85, absD * 0.04);
+  // Cool tint = icy blue. Warm tint = deep red. mix-blend-mode: color forces
+  // the underlying hue+saturation to match, so saturation here matters a lot.
+  const tintColor = delta < 0
+    ? `rgba(20, 140, 255, ${alpha.toFixed(2)})`
+    : `rgba(255, 50, 30, ${alpha.toFixed(2)})`;
+  tint.style.backgroundColor = tintColor;
+}
+
+// Teletext scene — the whole skyline (sun, hills, buildings, lake, sunset band)
+// shifts together between cool and warm palettes.
+function paintTeletextScene(temp) {
+  const skyline = document.querySelector('.skyline');
+  if (!skyline) return;
+  skyline.style.filter = tempFilter(temp, { sepiaRate: 0.07, satRate: 0.13, satMax: 2.2 });
 }
 
 // Teletext wind streaks — short horizontal pixel rows that drift across the
@@ -1298,7 +1339,7 @@ function paintTeletextWind(wind, wdir) {
   while (layer.firstChild) layer.removeChild(layer.firstChild);
   if (!hasVal(wind) || wind < 5) return;
   const count = Math.min(6, Math.floor(wind / 6) + 1);
-  const dirSign = hasVal(wdir) ? (-Math.sin((wdir + 180) * Math.PI / 180) >= 0 ? 1 : -1) : 1;
+  const dirSign = hasVal(wdir) ? (Math.sin((wdir + 180) * Math.PI / 180) >= 0 ? 1 : -1) : 1;
   // Faster wind → shorter cycle (smaller dur).
   const dur = Math.max(3, 14 - wind / 5);
   for (let i = 0; i < count; i++) {
@@ -1337,7 +1378,7 @@ function paintSceneWind(wind, wdir) {
   while (layer.firstChild) layer.removeChild(layer.firstChild);
   if (!hasVal(wind) || wind < 5) return;
   const count = Math.min(18, Math.floor(wind / 3) + 3);
-  const dirSign = hasVal(wdir) ? (-Math.sin((wdir + 180) * Math.PI / 180) >= 0 ? 1 : -1) : 1;
+  const dirSign = hasVal(wdir) ? (Math.sin((wdir + 180) * Math.PI / 180) >= 0 ? 1 : -1) : 1;
   const dur = Math.max(2.5, 10 - wind / 6);
   for (let i = 0; i < count; i++) {
     const y = 80 + Math.random() * 470;
@@ -1370,7 +1411,7 @@ function applyWeatherEffects(data) {
   paintSceneWind(lastWeather.wind, lastWeather.wdir);
   tuneSun(lastWeather.temp);
   paintTeletextRain(lastWeather.rate, lastWeather.wdir);
-  paintTeletextSun(lastWeather.temp);
+  paintTeletextScene(lastWeather.temp);
   paintTeletextWind(lastWeather.wind, lastWeather.wdir);
 }
 
@@ -1461,6 +1502,11 @@ async function update() {
     console.error(e);
   }
 }
+
+// Paint a neutral scene immediately so the SVGs don't flash their raw
+// colors before the first weather poll resolves. 15°C is the no-op anchor
+// of tempFilter, so this leaves the original palette visible.
+applyWeatherEffects({ temp: 15, rate: 0, wdir: null, wind: 0 });
 
 update();
 setInterval(update, POLL_MS);
